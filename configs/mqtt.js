@@ -4,7 +4,16 @@ const db = require("../configs/database");
 const DataLog = require("../models/datalog.model");
 const Device = require("../models/device.model");
 
-const client = mqtt.connect("ws://1.55.212.49:8083/mqtt");
+const options = {
+    keepalive: 120,  // Giá trị thời gian (giây) để giữ kết nối sống
+    reconnectPeriod: 5000,  // Thời gian (ms) trước khi thử kết nối lại
+    connectTimeout: 60 * 1000,  // Thời gian chờ kết nối (ms)
+    clientId: 'SmartCampus-GSMT', 
+    username: 'admin', 
+    password: 'public',
+    clean: true
+};
+const client = mqtt.connect("ws://1.55.212.49:8083/mqtt", options);
 
 module.exports.connectMQTT = async () => {
 	try {

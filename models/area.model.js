@@ -4,7 +4,7 @@ const mssql = require("mssql");
 module.exports.find = async () => {
 	try {
 		const record = await db.pool.request().query(`
-			SELECT Area.id, Area.title, Area.parent_id, Area.level, Area.type_id, Type.title AS type FROM Area
+			SELECT Area.id, Area.label, Area.parent_id, Area.level, Area.type_id, Type.title AS type FROM Area
 			LEFT JOIN Type ON Area.type_id = Type.id
 		`);
 		return record.recordset;
@@ -21,7 +21,7 @@ module.exports.findById = async (id) => {
 	try {
 		const record = await db.pool.request().input("id", mssql.Int, id)
 			.query(`
-SELECT Area.id, Area.title, Area.parent_id, Area.level, Area.type_id, Type.title AS type FROM Area
+SELECT Area.id, Area.label, Area.parent_id, Area.level, Area.type_id, Type.label AS type FROM Area
 			LEFT JOIN Type ON Area.type_id = Type.id
                 WHERE Area.id = @id
             `);
@@ -99,18 +99,18 @@ module.exports.create = async (data) => {
 	try {
 		const result = await db.pool
 			.request()
-			.input("title", mssql.NVarChar, data.title)
+			.input("label", mssql.NVarChar, data.label)
 			.input("parent_id", mssql.Int, data.parent_id)
 			.input("level", mssql.Int, data.level)
 			.input("type_id", mssql.Int, data.type_id)
 			.query(`
                 INSERT INTO Area (
-					title,
+					label,
 					parent_id,
 					level,
 					type_id
 				)
-                VALUES (@title,
+                VALUES (@label,
                         @parent_id,
                         @level,
                         @type_id
@@ -129,14 +129,14 @@ module.exports.updateById = async (id, data) => {
 		const record = await db.pool
 			.request()
 			.input("id", mssql.Int, id)
-			.input("title", mssql.NVarChar, data.title)
+			.input("label", mssql.NVarChar, data.label)
 			.input("parent_id", mssql.Int, data.parent_id)
 			.input("level", mssql.Int, data.level)
 			.input("type_id", mssql.Int, data.type_id)
 			.query(`
                 UPDATE Area
                 SET 
-                    title = @title,
+                    label = @label,
                     parent_id = @parent_id,
                     level = @level,
                     type_id = @type_id

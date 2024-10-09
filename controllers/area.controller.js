@@ -1,5 +1,31 @@
 const Area = require("../models/area.model");
 
+function buildTree(flatData) {
+    let tree = [];
+    let lookup = {};
+
+    // Tạo một đối tượng để tra cứu nhanh các phần tử
+    flatData.forEach(item => {
+        lookup[item.id] = { ...item, children: [] };
+        console.log( lookup[item.id] )
+    });
+
+    // Xây dựng cây dựa vào parent_id
+    flatData.forEach(item => {
+        if (item.parent_id === 0) {
+            // Nếu không có parent, đây là node gốc
+            tree.push(lookup[item.id]);
+            console.log("Check parent 0")
+        } else {
+            // Gán phần tử vào children của phần tử cha
+            lookup[item.parent_id].children.push(lookup[item.id]);
+            console.log("Check chill 1",   lookup[item.parent_id] )
+        }
+    });
+
+    return tree;
+}
+
 // [POST] INDEX
 module.exports.index = async (req, res) => {
     try {
@@ -13,11 +39,13 @@ module.exports.index = async (req, res) => {
                 })
 
         }
+        const tree = buildTree(area)
         return res.status(200).json({
             code: 200,
             message: "Get data success",
             total: totalArea.total,
-            area,
+            area, 
+            tree,
         });
     } catch (error) {
         return res.status(500).json({

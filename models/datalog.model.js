@@ -3,7 +3,8 @@ const mssql = require("mssql");
 
 module.exports.find = async () => {
 	try {
-		const record = await db.pool.request().query("SELECT * FROM DataLog");
+		const record = await db.pool.request().query(`
+			SELECT DataLog.*, Device.device_id AS device FROM DataLog LEFT JOIN Device ON DataLog.device_id = Device.id`);
 		return record.recordset;
 	} catch (error) {
 		console.error("error", error.message);
