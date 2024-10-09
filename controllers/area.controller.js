@@ -85,7 +85,7 @@ module.exports.detail = async (req, res) => {
 module.exports.create = async (req, res) => {
     try {
         const data = req.body;
-        const existedArea = await Area.findByData("title", data.title);
+        const existedArea = await Area.findByData("label", data.label);
         // console.log(data);
         
         // console.log(existedArea);
@@ -97,7 +97,7 @@ module.exports.create = async (req, res) => {
             });
         }
         const area = await Area.create(data);
-        const createdArea = await Area.findByData("title", data.title);
+        const createdArea = await Area.findByData("label", data.label);
         if (createdArea.length == 0) {
             return res.json({
                 code: 500,
@@ -184,6 +184,43 @@ module.exports.delete = async (req, res) => {
                 message: "Delete area failed",
             })
         }
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            message: error.message,
+        });
+    }
+};
+
+
+module.exports.deviceInArea = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const existedArea = await Area.findById(id);
+        console.log(existedArea);
+        if (existedArea.length == 0) {
+            return res
+                .json({
+                    code: 204,
+                    message: "Not found area",
+                })
+
+        }
+        const devices = await Area.getDevice(id);
+        if (devices.length == 0) {
+            return res
+                .json({
+                    code: 204,
+                    message: "Not found Device on this Area",
+                })
+
+        }
+        return res.status(200)
+        .json({
+            code: 200,
+            message: "Get Device on Area success!",
+            devices
+        })
     } catch (error) {
         return res.status(500).json({
             code: 500,

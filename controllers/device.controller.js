@@ -42,10 +42,22 @@ module.exports.detail = async (req, res) => {
                 })
 
         }
+        const countById = await Device.countById(id);
+        if (countById.total == 0)
+        {
+            return res
+            .json({
+                code: 204,
+                message: "No DataLog found",
+            })
+        }
+        const dataLogDevice = await Device.getDataLogDevice(id)
         return res.status(200).json({
             code: 200,
             message: "Get data success",
-            Device: device[0],
+            device: device[0],
+            total: countById.total,
+            dataLog: dataLogDevice
         });
     } catch (error) {
         return res.status(500).json({
@@ -72,7 +84,11 @@ module.exports.create = async (req, res) => {
                 message: "Device already exists",
             });
         }
-        const device = await Device.create(data);
+        const dataCreate = {
+            ...data,
+            state: 1
+        }
+        const device = await Device.create(dataCreate);
         const createdDevice = await Device.findByData("device_id", data.device_id);
         if (createdDevice.length == 0) {
             return res.json({
@@ -167,3 +183,4 @@ module.exports.delete = async (req, res) => {
         });
     }
 };
+

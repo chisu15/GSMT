@@ -96,16 +96,12 @@ module.exports.create = async (device) => {
 		const result = await db.pool
 			.request()
 			.input("device_id", mssql.NVarChar, device.device_id)
-			.input("hum", mssql.Float, device.hum)
-			.input("temp", mssql.Float, device.temp)
-			.input("air_quality", mssql.Float, device.air_quality)
-			.input("light", mssql.Float, device.light)
 			.input("state", mssql.Int, 0)
 			.input("description", mssql.NVarChar, device.description)
 			.input("type_id", mssql.Int, device.type_id)
 			.input("area_id", mssql.Int, device.area_id)
 			.query(
-				"INSERT INTO Device (device_id, hum, temp, air_quality, light, state, description, type_id, area_id) VALUES (@device_id, @hum, @temp, @air_quality, @light, @state, @description, @type_id, @area_id)"
+				"INSERT INTO Device (device_id, state, description, type_id, area_id) VALUES (@device_id, @hum, @temp, @air_quality, @light, @state, @description, @type_id, @area_id)"
 			);
 		return { success: true, id: result.recordset[0].id };
 	} catch (error) {
@@ -120,10 +116,6 @@ module.exports.updateById = async (id, device) => {
 			.request()
 			.input("id", mssql.Int, id)
 			.input("device_id", mssql.NVarChar, device.device_id)
-			.input("hum", mssql.Float, device.hum)
-			.input("temp", mssql.Float, device.temp)
-			.input("air_quality", mssql.Float, device.air_quality)
-			.input("light", mssql.Float, device.light)
 			.input("state", db.mssql.Int, 0)
 			.input("description", mssql.NVarChar, device.description)
 			.input("type_id", mssql.Int, device.type_id)
@@ -132,10 +124,6 @@ module.exports.updateById = async (id, device) => {
                 UPDATE Device
                 SET 
                     device_id = @device_id,
-                    hum = @hum,
-                    temp = @temp,
-					air_quality = @air_quality,
-					light = @light,
 					state = @state,
 					description = @description,
                     type_id = @type_id,
@@ -165,13 +153,54 @@ module.exports.updateById = async (id, device) => {
 
 module.exports.count = async () => {
 	try {
-		const record = await db.pool.request().query(`
+		const record = await db.pool.request()
+		.query(`
             SELECT COUNT(*) AS total FROM Device;
         `);
 
 		return {
 			success: true,
 			total: record.recordset[0].total,
+		};
+	} catch (error) {
+		console.error("error", error.message);
+		return {
+			success: false,
+			message: error.message,
+		};
+	}
+};
+
+module.exports.countById = async (id) => {
+	try {
+		const record = await db.pool.request()
+		.input("id", mssql.Int, id)
+		.query(`
+			SELECT COUNT(*) AS total FROM DataLog WHERE device_id = @id;
+        `);
+
+		return {
+			success: true,
+			total: record.recordset[0].total,
+		};
+	} catch (error) {
+		console.error("error", error.message);
+		return {
+			success: false,
+			message: error.message,
+		};
+	}
+};
+module.exports.deleteById = async (id) => {
+	try {
+		const record = await db.pool.request().input("id", mssql.Int, id)
+			.query(`
+                DELETE FROM Device WHERE id = @id;
+            `);
+
+		return {
+			success: true,
+			message: "Record deleted successfully",
 		};
 	} catch (error) {
 		console.error("error", error.message);
@@ -193,6 +222,25 @@ module.exports.deleteById = async (id) => {
 			success: true,
 			message: "Record deleted successfully",
 		};
+	} catch (error) {
+		console.error("error", error.message);
+		return {
+			success: false,
+			message: error.message,
+		};
+	}
+};
+
+module.exports.getDataLogDevice = async (id) => {
+	try {
+		const record = await db.pool
+			.request()
+			.input("id", mssql.Int, id)
+			.query(`
+				SELECT * FROM DataLog WHERE device_id = @id
+			`);
+
+		return record.recordset;
 	} catch (error) {
 		console.error("error", error.message);
 		return {

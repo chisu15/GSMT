@@ -102,8 +102,7 @@ module.exports.create = async (data) => {
 			.input("label", mssql.NVarChar, data.label)
 			.input("parent_id", mssql.Int, data.parent_id)
 			.input("level", mssql.Int, data.level)
-			.input("type_id", mssql.Int, data.type_id)
-			.query(`
+			.input("type_id", mssql.Int, data.type_id).query(`
                 INSERT INTO Area (
 					label,
 					parent_id,
@@ -132,8 +131,7 @@ module.exports.updateById = async (id, data) => {
 			.input("label", mssql.NVarChar, data.label)
 			.input("parent_id", mssql.Int, data.parent_id)
 			.input("level", mssql.Int, data.level)
-			.input("type_id", mssql.Int, data.type_id)
-			.query(`
+			.input("type_id", mssql.Int, data.type_id).query(`
                 UPDATE Area
                 SET 
                     label = @label,
@@ -199,5 +197,21 @@ module.exports.deleteById = async (id) => {
 			success: false,
 			message: error.message,
 		};
+	}
+};
+
+module.exports.getDevice = async (area_id) => {
+	try {
+		const record = await db.pool.request().input("area_id", mssql.Int, area_id) // Thêm area_id vào câu lệnh truy vấn
+			.query(`
+                SELECT d.*
+                FROM Device d
+                WHERE d.area_id = @area_id
+            `);
+
+		return record.recordset; // Trả về danh sách các thiết bị theo area_id
+	} catch (error) {
+		console.error("SQL error", error);
+		throw new Error("Could not retrieve devices by area_id");
 	}
 };
