@@ -237,7 +237,7 @@ module.exports.getDataLogDevice = async (id) => {
 			.request()
 			.input("id", mssql.Int, id)
 			.query(`
-				SELECT * FROM DataLog WHERE device_id = @id
+				SELECT TOP 10 * FROM DataLog WHERE device_id = @id
 			`);
 
 		return record.recordset;
