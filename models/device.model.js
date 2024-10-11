@@ -101,7 +101,7 @@ module.exports.create = async (device) => {
 			.input("type_id", mssql.Int, device.type_id)
 			.input("area_id", mssql.Int, device.area_id)
 			.query(
-				"INSERT INTO Device (device_id, state, description, type_id, area_id) VALUES (@device_id, @hum, @temp, @air_quality, @light, @state, @description, @type_id, @area_id)"
+				"INSERT INTO Device (device_id, state, description, type_id, area_id) VALUES (@device_id, @state, @description, @type_id, @area_id)"
 			);
 		return { success: true, id: result.recordset[0].id };
 	} catch (error) {
