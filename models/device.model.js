@@ -96,7 +96,7 @@ module.exports.create = async (device) => {
 		const result = await db.pool
 			.request()
 			.input("device_id", mssql.NVarChar, device.device_id)
-			.input("state", mssql.Int, 0)
+			.input("state", mssql.Int, 1)
 			.input("description", mssql.NVarChar, device.description)
 			.input("type_id", mssql.Int, device.type_id)
 			.input("area_id", mssql.Int, device.area_id)
