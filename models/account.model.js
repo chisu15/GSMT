@@ -19,25 +19,29 @@ async function createAccount(account) {
         .input('type', mssql.NVarChar, account.type)
         .input('full_name', mssql.NVarChar, account.full_name)
         .input('password', mssql.NVarChar, account.password)
-        .query('INSERT INTO Account (username, type, full_name, password) VALUES (@username, @type, @full_name, @password)');
+        .input('permission_id', mssql.Int, account.permission_id)
+        .query('INSERT INTO Account (username, type, full_name, password, permission_id) VALUES (@username, @type, @full_name, @password, @permission_id)');
     return result.recordset;
 }
 
-async function updateAccount(username, account) {
+async function updateAccount(id, account) {
     const updateFields = [];
+    if (account.username) updateFields.push(`username = @username`);
     if (account.session_id) updateFields.push(`session_id = @session_id`);
     if (account.type) updateFields.push(`type = @type`);
     if (account.full_name) updateFields.push(`full_name = @full_name`);
     if (account.password) updateFields.push(`password = @password`);
+    if (account.permission_id) updateFields.push(`permission_id = @permission_id`);
+    const query = `UPDATE Account SET ${updateFields.join(', ')} WHERE id = @id`;
 
-    const query = `UPDATE Account SET ${updateFields.join(', ')} WHERE user_name = @username`;
+    const request = db.pool.request().input('id', mssql.Int, id);
 
-    const request = db.pool.request().input('username', mssql.NVarChar, username);
+    if (account.username) request.input('username', mssql.NVarChar, account.username);
     if (account.session_id) request.input('session_id', mssql.NVarChar, account.session_id);
     if (account.type) request.input('type', mssql.NVarChar, account.type);
     if (account.full_name) request.input('full_name', mssql.NVarChar, account.full_name);
     if (account.password) request.input('password', mssql.NVarChar, account.password);
-
+    if (account.permission_id) request.input('permission_id', mssql.Int, account.permission_id);
     const result = await request.query(query);
     return result.recordset;
 }

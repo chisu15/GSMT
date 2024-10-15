@@ -1,23 +1,22 @@
-const Device = require("../models/device.model");
+const Permission = require("../models/permission.model");
 
 // [POST] INDEX
 module.exports.index = async (req, res) => {
     try {
-        const device = await Device.find();
-        const totalDevice = await Device.count();
-        if (!device.length) {
+        const permission = await Permission.find();
+        const totalPermission = await Permission.count();
+        if (!permission.length) {
             return res
                 .json({
                     code: 204,
-                    message: "No Device found",
+                    message: "No permission found",
                 })
-
         }
         return res.status(200).json({
             code: 200,
             message: "Get data success",
-            total: totalDevice.total,
-            device,
+            total: totalPermission.total,
+            permission
         });
     } catch (error) {
         return res.status(500).json({
@@ -31,31 +30,19 @@ module.exports.index = async (req, res) => {
 module.exports.detail = async (req, res) => {
     try {
         const { id } = req.params;
-        const device = await Device.findById(id);
-        if (device.length == 0) {
+        const permission = await Permission.findById(id);
+        if (permission.length == 0) {
             return res
                 .json({
                     code: 204,
-                    message: "Not found Device",
+                    message: "Not found permission",
                 })
 
         }
-        const countById = await Device.countById(id);
-        if (countById.total == 0)
-        {
-            return res
-            .json({
-                code: 204,
-                message: "No DataLog found",
-            })
-        }
-        const dataLogDevice = await Device.getDataLogDevice(id)
         return res.status(200).json({
             code: 200,
             message: "Get data success",
-            device: device[0],
-            total: countById.total,
-            dataLog: dataLogDevice
+            permission: permission[0],
         });
     } catch (error) {
         return res.status(500).json({
@@ -69,35 +56,31 @@ module.exports.detail = async (req, res) => {
 module.exports.create = async (req, res) => {
     try {
         const data = req.body;
-        const existedDevice = await Device.findByData("device_id", data.device_id);
         console.log(data);
         
+        const existedPermission = await Permission.findByData("title", data.title);
         // console.log(data);
         
-        // console.log(existedDevice);
+        // console.log(existedpermission);
 
-        if (existedDevice.length != 0) {
+        if (existedPermission.length != 0) {
             return res.json({
                 code: 500,
-                message: "Device already exists",
+                message: "permission already exists",
             });
         }
-        const dataCreate = {
-            ...data,
-            state: 1
-        }
-        const device = await Device.create(dataCreate);
-        const createdDevice = await Device.findByData("device_id", data.device_id);
-        if (createdDevice.length == 0) {
+        const permission = await Permission.create(data);
+        const createdPermission = await Permission.findByData("title", data.title);
+        if (createdPermission.length == 0) {
             return res.json({
                 code: 500,
-                message: "Failed to create Device",
+                message: "Failed to create permission",
             });
         }
         return res.status(201).json({
             code: 201,
             message: "Create data success",
-            Device: device[0],
+            permission: permission[0],
         });
     } catch (error) {
         return res.status(500).json({
@@ -112,30 +95,30 @@ module.exports.edit = async (req, res) => {
     try {
         const {id} = req.params;
         const data = req.body;
-        const existedDevice = await Device.findById(id);
-        console.log(existedDevice);
-        if (existedDevice.length == 0) {
+        const existedPermission = await Permission.findById(id);
+        console.log(existedPermission );
+        if (existedPermission .length == 0) {
             return res
                 .json({
                     code: 204,
-                    message: "Not found Device",
+                    message: "Not found permission",
                 })
 
         }
-        const device = await Device.updateById(id, data);
-        console.log(device);
-        if (device.success)
+        const permission = await Permission.updateById(id, data);
+        console.log(Permission);
+        if (permission.success)
             {
                 return res.status(200).json({
                     code: 200,
-                    message: "Update Device success",
-                    Device: device.data
+                    message: "Update permission success",
+                    permission: permission.data
                 })
             }
             else {
                 return res.json({
                     code: 500,
-                    message: "Update Device failed",
+                    message: "Update permission failed",
                 }).status(500)
             }
     } catch (error) {
@@ -150,28 +133,27 @@ module.exports.edit = async (req, res) => {
 module.exports.delete = async (req, res) => {
     try {
         const { id } = req.params;
-        const existedDevice = await Device.findById(id);
-        console.log(existedDevice);
-        if (existedDevice.length == 0) {
+        const existedPermission = await Permission.findById(id);
+        console.log(existedPermission);
+        if (existedPermission.length == 0) {
             return res
                 .json({
                     code: 204,
-                    message: "Not found Device",
+                    message: "Not found permission",
                 })
-
         }
-        const device = await Device.deleteById(id);
-        if (device)
+        const permission = await Permission.deleteById(id);
+        if (permission)
         {
             return res.json({
                 code: 200,
-                message: "Delete Device success",
+                message: "Delete permission success",
             })
         }
         else {
             return res.json({
                 code: 500,
-                message: "Delete Device failed",
+                message: "Delete permission failed",
             })
         }
     } catch (error) {
@@ -181,4 +163,3 @@ module.exports.delete = async (req, res) => {
         });
     }
 };
-

@@ -93,12 +93,12 @@ async function createAccount(req, res) {
 
 async function updateAccount(req, res) {
     try {
-        const username = req.params.username;
+        const {id} = req.params;
         const account = req.body;
         if (account.password) {
             account.password = bcrypt.hashSync(account.password, 10);
         }
-        await Account.updateAccount(username, account);
+        await Account.updateAccount(id, account);
         res.status(200).json({
             message: 'Account updated successfully'
         });
