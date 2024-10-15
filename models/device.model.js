@@ -238,6 +238,7 @@ module.exports.getDataLogDevice = async (id) => {
 			.input("id", mssql.Int, id)
 			.query(`
 				SELECT TOP 10 * FROM DataLog WHERE device_id = @id
+				ORDER BY "create_at" DESC
 			`);
 
 		return record.recordset;
