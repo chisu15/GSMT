@@ -1,5 +1,5 @@
 const Device = require("../models/device.model");
-
+const calculate = require("../helpers/calculate")
 // [POST] INDEX
 module.exports.index = async (req, res) => {
     try {
@@ -50,9 +50,21 @@ module.exports.detail = async (req, res) => {
             })
         }
         const dataLogDevice = await Device.getDataLogDevice(id)
+        const lastActiveTime = await Device.getLastActiveTime(id);
+        console.log("Last Active Time:", lastActiveTime);
+        if (!lastActiveTime && dataLogDevice.length > 0) {
+            lastActiveTime = dataLogDevice[0].create_at;
+        }
+
+        let minutesAgo = null;
+        if (lastActiveTime) {
+            minutesAgo = calculate.calculateMinutesAgo(lastActiveTime);  // Tính số phút kể từ lần cuối hoạt động
+        }
+
         return res.status(200).json({
             code: 200,
             message: "Get data success",
+            lastActiveTime: minutesAgo,
             device: device[0],
             total: countById.total,
             dataLog: dataLogDevice

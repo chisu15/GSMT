@@ -93,7 +93,7 @@ module.exports.findByMultipleData = async (
 
 module.exports.create = async (device) => {
 	try {
-		const result = await db.pool
+		const record = await db.pool
 			.request()
 			.input("device_id", mssql.NVarChar, device.device_id)
 			.input("state", mssql.Int, 1)
@@ -103,7 +103,7 @@ module.exports.create = async (device) => {
 			.query(
 				"INSERT INTO Device (device_id, state, description, type_id, area_id) VALUES (@device_id, @state, @description, @type_id, @area_id)"
 			);
-		return { success: true, id: result.recordset[0].id };
+		return { success: true, id: record.recordset[0].id };
 	} catch (error) {
 		console.error("Error creating user:", error.message);
 		return { success: false, message: error.message };
@@ -249,4 +249,24 @@ module.exports.getDataLogDevice = async (id) => {
 			message: error.message,
 		};
 	}
+};
+
+module.exports.getLastActiveTime = async (id) => {
+    try {
+		const record = await db.pool.request()
+            .input('id', mssql.Int, id)
+            .query(`
+                SELECT TOP 1 create_at
+                FROM DataLog
+                WHERE device_id = @id
+                ORDER BY create_at DESC
+            `);
+        return record.recordset.length > 0 ? record.recordset[0].create_at : null;
+    } catch (error) {
+        console.error("error", error.message);
+        return {
+            success: false,
+            message: error.message,
+        };
+    }
 };
