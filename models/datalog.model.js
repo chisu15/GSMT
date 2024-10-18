@@ -1,10 +1,12 @@
 const db = require("../configs/database");
 const mssql = require("mssql");
+const calculate = require("../helpers/calculate")
 
 module.exports.find = async () => {
 	try {
 		const record = await db.pool.request().query(`
 			SELECT DataLog.*, Device.device_id AS device FROM DataLog LEFT JOIN Device ON DataLog.device_id = Device.id`);
+		const dataList = record.recordset
 		return record.recordset;
 	} catch (error) {
 		console.error("error", error.message);
@@ -94,7 +96,19 @@ module.exports.findByMultipleData = async (
 module.exports.create = async (data) => {
 	try {
 		console.log(data);
-		
+		const deviceRecord = await db.pool
+			.request()
+			.input("device_id", mssql.Int, data.device_id)
+			.query("SELECT state FROM Device WHERE id = @device_id");
+
+		if (deviceRecord.recordset.length === 0) {
+			return { success: false, message: "Device not found" };
+		}
+
+		const deviceState = deviceRecord.recordset[0].state;
+		if (deviceState === 0) {
+			return { success: false, message: "Device is disabled, log not saved" };
+		}
 		const result = await db.pool
 			.request()
 			.input("hum", mssql.Float, data.hum)

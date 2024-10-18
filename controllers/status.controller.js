@@ -1,28 +1,22 @@
-const DataLog = require("../models/datalog.model");
-const Device = require("../models/device.model");
-const calculate = require("../helpers/calculate")
-
-
+const Status = require("../models/status.model");
 
 // [POST] INDEX
 module.exports.index = async (req, res) => {
     try {
-        const dataLog = await DataLog.find();
-        const totalDataLog = await DataLog.count();
-        if (!dataLog.length) {
+        const status = await Status.find();
+        const totalStatus = await Status.count();
+        if (!status.length) {
             return res
                 .json({
                     code: 204,
-                    message: "No DataLog found",
+                    message: "No Status found",
                 })
-
         }
-        
         return res.status(200).json({
             code: 200,
             message: "Get data success",
-            total: totalDataLog.total,
-            dataLog,
+            total: totalStatus.total,
+            status
         });
     } catch (error) {
         return res.status(500).json({
@@ -36,19 +30,19 @@ module.exports.index = async (req, res) => {
 module.exports.detail = async (req, res) => {
     try {
         const { id } = req.params;
-        const dataLog = await DataLog.findById(id);
-        if (dataLog.length == 0) {
+        const status = await Status.findById(id);
+        if (status.length == 0) {
             return res
                 .json({
                     code: 204,
-                    message: "Not found DataLog",
+                    message: "Not found Status",
                 })
 
         }
         return res.status(200).json({
             code: 200,
             message: "Get data success",
-            DataLog: dataLog[0],
+            status: status[0],
         });
     } catch (error) {
         return res.status(500).json({
@@ -63,29 +57,26 @@ module.exports.create = async (req, res) => {
     try {
         const data = req.body;
         console.log(data);
-        const idDevice = Device.findByData("device_id", data.device_id)
-        if (existedDataLog.length != 0) {
+        
+        const existedStatus = await Status.findByData("title", data.title);
+        if (existedStatus.length != 0) {
             return res.json({
                 code: 500,
-                message: "DataLog already exists",
+                message: "Status already exists",
             });
         }
-        const dataCreate = {
-            ...data,
-            device_id: idDevice
-        }
-        const dataLog = await DataLog.create(dataCreate);
-        const createdDataLog = await DataLog.findByData("DataLog_id", data.DataLog_id);
-        if (createdDataLog.length == 0) {
+        const status = await Status.create(data);
+        const createdStatus = await Status.findByData("title", data.title);
+        if (createdStatus.length == 0) {
             return res.json({
                 code: 500,
-                message: "Failed to create DataLog",
+                message: "Failed to create Status",
             });
         }
         return res.status(201).json({
             code: 201,
             message: "Create data success",
-            DataLog: dataLog[0],
+            Status: status[0],
         });
     } catch (error) {
         return res.status(500).json({
@@ -100,30 +91,30 @@ module.exports.edit = async (req, res) => {
     try {
         const {id} = req.params;
         const data = req.body;
-        const existedDataLog = await DataLog.findById(id);
-        console.log(existedDataLog);
-        if (existedDataLog.length == 0) {
+        const existedStatus = await Status.findById(id);
+        console.log(existedStatus );
+        if (existedStatus .length == 0) {
             return res
                 .json({
                     code: 204,
-                    message: "Not found DataLog",
+                    message: "Not found Status",
                 })
 
         }
-        const dataLog = await DataLog.updateById(id, data);
-        console.log(dataLog);
-        if (dataLog.success)
+        const status = await Status.updateById(id, data);
+        console.log(status);
+        if (status.success)
             {
                 return res.status(200).json({
                     code: 200,
-                    message: "Update DataLog success",
-                    DataLog: dataLog.data
+                    message: "Update Status success",
+                    Status: status.data
                 })
             }
             else {
                 return res.json({
                     code: 500,
-                    message: "Update DataLog failed",
+                    message: "Update Status failed",
                 }).status(500)
             }
     } catch (error) {
@@ -138,28 +129,27 @@ module.exports.edit = async (req, res) => {
 module.exports.delete = async (req, res) => {
     try {
         const { id } = req.params;
-        const existedDataLog = await DataLog.findById(id);
-        console.log(existedDataLog);
-        if (existedDataLog.length == 0) {
+        const existedStatus = await Status.findById(id);
+        console.log(existedStatus);
+        if (existedStatus.length == 0) {
             return res
                 .json({
                     code: 204,
-                    message: "Not found DataLog",
+                    message: "Not found Status",
                 })
-
         }
-        const dataLog = await DataLog.deleteById(id);
-        if (dataLog)
+        const status = await Status.deleteById(id);
+        if (status)
         {
             return res.json({
                 code: 200,
-                message: "Delete DataLog success",
+                message: "Delete Status success",
             })
         }
         else {
             return res.json({
                 code: 500,
-                message: "Delete DataLog failed",
+                message: "Delete Status failed",
             })
         }
     } catch (error) {

@@ -3,12 +3,14 @@ const bodyParser = require('body-parser');
 require('dotenv').config();
 const route = require("./routes/index.route");
 const cors = require("cors");
+const path = require("path");
 const db = require("./configs/database.js");
 const MQTT = require("./configs/mqtt.js")
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 db.connect();
 MQTT.connectMQTT();
 MQTT.handleMessage();

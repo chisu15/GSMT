@@ -1,11 +1,11 @@
 const db = require("../configs/database");
 const mssql = require("mssql");
 
+// Lấy tất cả ảnh
 module.exports.find = async () => {
 	try {
 		const record = await db.pool.request().query(`
-			SELECT Area.id, Area.label, Area.parent_id, Area.level, Area.type_id, Area.code, Type.title AS type FROM Area
-			LEFT JOIN Type ON Area.type_id = Type.id
+			SELECT * FROM Image
 		`);
 		return record.recordset;
 	} catch (error) {
@@ -17,13 +17,13 @@ module.exports.find = async () => {
 	}
 };
 
+// Lấy một ảnh theo ID
 module.exports.findById = async (id) => {
 	try {
 		const record = await db.pool.request().input("id", mssql.Int, id)
 			.query(`
-SELECT Area.id, Area.label, Area.parent_id, Area.level, Area.type_id, Type.title AS type FROM Area
-			LEFT JOIN Type ON Area.type_id = Type.id
-                WHERE Area.id = @id
+            SELECT * FROM Image
+            WHERE id = @id
             `);
 
 		return record.recordset;
@@ -36,10 +36,11 @@ SELECT Area.id, Area.label, Area.parent_id, Area.level, Area.type_id, Type.title
 	}
 };
 
+// Lấy ảnh theo khóa
 module.exports.findByData = async (key, value) => {
 	try {
 		const query = `
-            SELECT * FROM Area
+            SELECT * FROM Image
             WHERE ${key} = @value
         `;
 
@@ -57,20 +58,33 @@ module.exports.findByData = async (key, value) => {
 		};
 	}
 };
-
-module.exports.findByMultipleData = async (
-	key1,
-	key2,
-	key3,
-	key4,
-	value1,
-	value2,
-	value3,
-	value4
-) => {
+module.exports.findByDataInt = async (key, value) => {
 	try {
 		const query = `
-            SELECT * FROM Area
+            SELECT * FROM Image
+            WHERE ${key} = @value
+        `;
+
+		const record = await db.pool
+			.request()
+			.input("value", mssql.Int, value)
+			.query(query);
+
+		return record.recordset;
+	} catch (error) {
+		console.error("error", error.message);
+		return {
+			success: false,
+			message: error.message,
+		};
+	}
+};
+
+// Lấy ảnh theo nhiều khóa
+module.exports.findByMultipleData = async (key1, key2, key3, key4, value1, value2, value3, value4) => {
+	try {
+		const query = `
+            SELECT * FROM Image
             WHERE ${key1} = @value1 
             AND ${key2} = @value2 
             AND ${key3} = @value3 
@@ -79,7 +93,7 @@ module.exports.findByMultipleData = async (
 
 		const record = await db.pool
 			.request()
-			.input("value1", mssql.DateTime2, value1)
+			.input("value1", mssql.NVarChar, value1)
 			.input("value2", mssql.NVarChar, value2)
 			.input("value3", mssql.NVarChar, value3)
 			.input("value4", mssql.NVarChar, value4)
@@ -95,72 +109,62 @@ module.exports.findByMultipleData = async (
 	}
 };
 
+// Tạo mới một ảnh
 module.exports.create = async (data) => {
 	try {
 		const result = await db.pool
 			.request()
-			.input("label", mssql.NVarChar, data.label)
-			.input("parent_id", mssql.Int, data.parent_id)
-			.input("level", mssql.Int, data.level)
-			.input("type_id", mssql.Int, data.type_id)
-			.input("code", mssql.NVarChar, data.code)
+			.input("url", mssql.NVarChar, data.url)
+			.input("entity_id", mssql.Int, data.entity_id)
+			.input("entity_type", mssql.NVarChar, data.entity_type)
 			.query(`
-                INSERT INTO Area (
-					label,
-					parent_id,
-					level,
-					type_id,
-					code
+                INSERT INTO Image (
+                    url,
+                    entity_id,
+                    entity_type
 				)
-                VALUES (@label,
-                        @parent_id,
-                        @level,
-                        @type_id,
-						@code
-						);
+                VALUES (
+                    @url,
+                    @entity_id,
+                    @entity_type
+				);
                 SELECT SCOPE_IDENTITY() AS id;
             `);
 		return { success: true, id: result.recordset[0].id };
 	} catch (error) {
-		console.error("Error creating user:", error.message);
+		console.error("Error creating image:", error.message);
 		return { success: false, message: error.message };
 	}
 };
 
+// Cập nhật một ảnh theo ID
 module.exports.updateById = async (id, data) => {
 	try {
 		const record = await db.pool
 			.request()
 			.input("id", mssql.Int, id)
-			.input("label", mssql.NVarChar, data.label)
-			.input("parent_id", mssql.Int, data.parent_id)
-			.input("level", mssql.Int, data.level)
-			.input("type_id", mssql.Int, data.type_id)
-			.input("code", mssql.NVarChar, data.code)
+			.input("url", mssql.NVarChar, data.url)
+			.input("entity_id", mssql.Int, data.entity_id)
+			.input("entity_type", mssql.NVarChar, data.entity_type)
 			.query(`
-                UPDATE Area
+                UPDATE Image
                 SET 
-                    label = @label,
-                    parent_id = @parent_id,
-                    level = @level,
-                    type_id = @type_id,
-					code = @code
+                    url = @url,
+                    entity_id = @entity_id,
+                    entity_type = @entity_type
                 WHERE id = @id;
-                SELECT
-                    *
-                FROM Area 
-                WHERE id = @id;
+                SELECT * FROM Image WHERE id = @id;
             `);
 		if (record.recordset.length === 0) {
-			return { success: false, message: "Area not found" };
+			return { success: false, message: "Image not found" };
 		}
 		return {
 			success: true,
-			message: "Area updated successfully",
+			message: "Image updated successfully",
 			data: record.recordset[0],
 		};
 	} catch (error) {
-		console.error("Error updating Area:", error.message);
+		console.error("Error updating Image:", error.message);
 		return {
 			success: false,
 			message: error.message,
@@ -168,10 +172,11 @@ module.exports.updateById = async (id, data) => {
 	}
 };
 
+// Đếm số lượng ảnh
 module.exports.count = async () => {
 	try {
 		const record = await db.pool.request().query(`
-            SELECT COUNT(*) AS total FROM Area;
+            SELECT COUNT(*) AS total FROM Image;
         `);
 
 		return {
@@ -187,11 +192,12 @@ module.exports.count = async () => {
 	}
 };
 
+// Xóa ảnh theo ID
 module.exports.deleteById = async (id) => {
 	try {
 		const record = await db.pool.request().input("id", mssql.Int, id)
 			.query(`
-                DELETE FROM Area WHERE id = @id;
+                DELETE FROM Image WHERE id = @id;
             `);
 
 		return {
@@ -204,21 +210,5 @@ module.exports.deleteById = async (id) => {
 			success: false,
 			message: error.message,
 		};
-	}
-};
-
-module.exports.getDevice = async (area_id) => {
-	try {
-		const record = await db.pool.request().input("area_id", mssql.Int, area_id) // Thêm area_id vào câu lệnh truy vấn
-			.query(`
-                SELECT d.*
-                FROM Device d
-                WHERE d.area_id = @area_id
-            `);
-
-		return record.recordset; // Trả về danh sách các thiết bị theo area_id
-	} catch (error) {
-		console.error("SQL error", error);
-		throw new Error("Could not retrieve devices by area_id");
 	}
 };

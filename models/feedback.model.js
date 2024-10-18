@@ -4,8 +4,7 @@ const mssql = require("mssql");
 module.exports.find = async () => {
 	try {
 		const record = await db.pool.request().query(`
-			SELECT Area.id, Area.label, Area.parent_id, Area.level, Area.type_id, Area.code, Type.title AS type FROM Area
-			LEFT JOIN Type ON Area.type_id = Type.id
+			SELECT * FROM Feedback
 		`);
 		return record.recordset;
 	} catch (error) {
@@ -21,9 +20,8 @@ module.exports.findById = async (id) => {
 	try {
 		const record = await db.pool.request().input("id", mssql.Int, id)
 			.query(`
-SELECT Area.id, Area.label, Area.parent_id, Area.level, Area.type_id, Type.title AS type FROM Area
-			LEFT JOIN Type ON Area.type_id = Type.id
-                WHERE Area.id = @id
+            SELECT *  FROM Feedback
+                WHERE Feedback.id = @id
             `);
 
 		return record.recordset;
@@ -39,7 +37,7 @@ SELECT Area.id, Area.label, Area.parent_id, Area.level, Area.type_id, Type.title
 module.exports.findByData = async (key, value) => {
 	try {
 		const query = `
-            SELECT * FROM Area
+            SELECT * FROM Feedback
             WHERE ${key} = @value
         `;
 
@@ -70,7 +68,7 @@ module.exports.findByMultipleData = async (
 ) => {
 	try {
 		const query = `
-            SELECT * FROM Area
+            SELECT * FROM Feedback
             WHERE ${key1} = @value1 
             AND ${key2} = @value2 
             AND ${key3} = @value3 
@@ -99,24 +97,21 @@ module.exports.create = async (data) => {
 	try {
 		const result = await db.pool
 			.request()
-			.input("label", mssql.NVarChar, data.label)
-			.input("parent_id", mssql.Int, data.parent_id)
-			.input("level", mssql.Int, data.level)
-			.input("type_id", mssql.Int, data.type_id)
-			.input("code", mssql.NVarChar, data.code)
-			.query(`
-                INSERT INTO Area (
-					label,
-					parent_id,
-					level,
-					type_id,
-					code
+			.input("content", mssql.NVarChar, data.content)
+            .input("area_code", mssql.NVarChar, data.area_code)
+			.input("status_id", mssql.Int, data.status_id)
+            .input("area_id", mssql.Int, data.area_id)
+            .query(`
+                INSERT INTO Feedback (
+                    content,
+                    area_code,
+                    status_id,
+                    area_id
 				)
-                VALUES (@label,
-                        @parent_id,
-                        @level,
-                        @type_id,
-						@code
+                VALUES (@content,
+                        @area_code,
+                        @status_id,
+                        @area_id
 						);
                 SELECT SCOPE_IDENTITY() AS id;
             `);
@@ -132,35 +127,33 @@ module.exports.updateById = async (id, data) => {
 		const record = await db.pool
 			.request()
 			.input("id", mssql.Int, id)
-			.input("label", mssql.NVarChar, data.label)
-			.input("parent_id", mssql.Int, data.parent_id)
-			.input("level", mssql.Int, data.level)
-			.input("type_id", mssql.Int, data.type_id)
-			.input("code", mssql.NVarChar, data.code)
-			.query(`
-                UPDATE Area
+			.input("content", mssql.NVarChar, data.content)
+            .input("area_code", mssql.NVarChar, data.area_code)
+			.input("status_id", mssql.Int, data.status_id)
+            .input("area_id", mssql.Int, data.area_id)
+            .query(`
+                UPDATE Feedback
                 SET 
-                    label = @label,
-                    parent_id = @parent_id,
-                    level = @level,
-                    type_id = @type_id,
-					code = @code
+                    content = @content,
+                    area_code = @area_code,
+                    status_id = @status_id,
+                    area_id = @area_id
                 WHERE id = @id;
                 SELECT
                     *
-                FROM Area 
+                FROM Feedback 
                 WHERE id = @id;
             `);
 		if (record.recordset.length === 0) {
-			return { success: false, message: "Area not found" };
+			return { success: false, message: "Feedback not found" };
 		}
 		return {
 			success: true,
-			message: "Area updated successfully",
+			message: "Feedback updated successfully",
 			data: record.recordset[0],
 		};
 	} catch (error) {
-		console.error("Error updating Area:", error.message);
+		console.error("Error updating Feedback:", error.message);
 		return {
 			success: false,
 			message: error.message,
@@ -171,7 +164,7 @@ module.exports.updateById = async (id, data) => {
 module.exports.count = async () => {
 	try {
 		const record = await db.pool.request().query(`
-            SELECT COUNT(*) AS total FROM Area;
+            SELECT COUNT(*) AS total FROM Feedback;
         `);
 
 		return {
@@ -191,7 +184,7 @@ module.exports.deleteById = async (id) => {
 	try {
 		const record = await db.pool.request().input("id", mssql.Int, id)
 			.query(`
-                DELETE FROM Area WHERE id = @id;
+                DELETE FROM Feedback WHERE id = @id;
             `);
 
 		return {
@@ -204,21 +197,5 @@ module.exports.deleteById = async (id) => {
 			success: false,
 			message: error.message,
 		};
-	}
-};
-
-module.exports.getDevice = async (area_id) => {
-	try {
-		const record = await db.pool.request().input("area_id", mssql.Int, area_id) // Thêm area_id vào câu lệnh truy vấn
-			.query(`
-                SELECT d.*
-                FROM Device d
-                WHERE d.area_id = @area_id
-            `);
-
-		return record.recordset; // Trả về danh sách các thiết bị theo area_id
-	} catch (error) {
-		console.error("SQL error", error);
-		throw new Error("Could not retrieve devices by area_id");
 	}
 };

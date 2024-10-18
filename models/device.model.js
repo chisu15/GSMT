@@ -1,7 +1,6 @@
 const db = require("../configs/database");
 const mssql = require("mssql");
 
-
 module.exports.find = async () => {
 	try {
 		const record = await db.pool.request().query("SELECT * FROM Device");
@@ -96,7 +95,7 @@ module.exports.create = async (device) => {
 		const record = await db.pool
 			.request()
 			.input("device_id", mssql.NVarChar, device.device_id)
-			.input("state", mssql.Int, 1)
+			.input("state", mssql.Int, device.state)
 			.input("description", mssql.NVarChar, device.description)
 			.input("type_id", mssql.Int, device.type_id)
 			.input("area_id", mssql.Int, device.area_id)
@@ -116,11 +115,10 @@ module.exports.updateById = async (id, device) => {
 			.request()
 			.input("id", mssql.Int, id)
 			.input("device_id", mssql.NVarChar, device.device_id)
-			.input("state", db.mssql.Int, 0)
+			.input("state", db.mssql.Int, 1)
 			.input("description", mssql.NVarChar, device.description)
 			.input("type_id", mssql.Int, device.type_id)
-			.input("area_id", mssql.Int, device.area)
-			.query(`
+			.input("area_id", mssql.Int, device.area).query(`
                 UPDATE Device
                 SET 
                     device_id = @device_id,
@@ -153,8 +151,7 @@ module.exports.updateById = async (id, device) => {
 
 module.exports.count = async () => {
 	try {
-		const record = await db.pool.request()
-		.query(`
+		const record = await db.pool.request().query(`
             SELECT COUNT(*) AS total FROM Device;
         `);
 
@@ -173,9 +170,8 @@ module.exports.count = async () => {
 
 module.exports.countById = async (id) => {
 	try {
-		const record = await db.pool.request()
-		.input("id", mssql.Int, id)
-		.query(`
+		const record = await db.pool.request().input("id", mssql.Int, id)
+			.query(`
 			SELECT COUNT(*) AS total FROM DataLog WHERE device_id = @id;
         `);
 
@@ -233,9 +229,8 @@ module.exports.deleteById = async (id) => {
 
 module.exports.getDataLogDevice = async (id) => {
 	try {
-		const record = await db.pool
-			.request()
-			.input("id", mssql.Int, id)
+
+		const record = await db.pool.request().input("id", mssql.Int, id)
 			.query(`
 				SELECT TOP 10 * FROM DataLog WHERE device_id = @id
 				ORDER BY "create_at" DESC
@@ -252,21 +247,54 @@ module.exports.getDataLogDevice = async (id) => {
 };
 
 module.exports.getLastActiveTime = async (id) => {
-    try {
-		const record = await db.pool.request()
-            .input('id', mssql.Int, id)
-            .query(`
+	try {
+		const record = await db.pool.request().input("id", mssql.Int, id)
+			.query(`
                 SELECT TOP 1 create_at
                 FROM DataLog
                 WHERE device_id = @id
                 ORDER BY create_at DESC
             `);
-        return record.recordset.length > 0 ? record.recordset[0].create_at : null;
-    } catch (error) {
-        console.error("error", error.message);
-        return {
-            success: false,
-            message: error.message,
-        };
-    }
+		return record.recordset.length > 0
+			? record.recordset[0].create_at
+			: null;
+	} catch (error) {
+		console.error("error", error.message);
+		return {
+			success: false,
+			message: error.message,
+		};
+	}
+};
+
+module.exports.disable = async (id, state) => {
+	try {
+		const record = await db.pool
+			.request()
+			.input("id", mssql.Int, id)
+			.input("state", mssql.Int, state).query(`
+                UPDATE Device
+                SET 
+					state = @state
+                WHERE id = @id;
+                SELECT
+                    *
+                FROM Device 
+                WHERE id = @id;
+            `);
+		if (record.recordset.length === 0) {
+			return { success: false, message: "Device not found" };
+		}
+		return {
+			success: true,
+			message: "Device disabled successfully",
+			data: record.recordset[0],
+		};
+	} catch (error) {
+		console.error("Error disabling Device:", error.message);
+		return {
+			success: false,
+			message: error.message,
+		};
+	}
 };

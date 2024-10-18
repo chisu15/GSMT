@@ -6,6 +6,8 @@ const sessionRoute = require("./session.route");
 const areaRoute = require("./area.route")
 const datalogRoute = require("./dataLog.route")
 const permissionRoute = require("./permission.route")
+const feedbackRoute = require("./feedback.route")
+const statusRoute = require("./status.route")
 module.exports = (app) => {
     const version = '/api/v1';
     app.use(version + '/account', accountRoute);
@@ -15,4 +17,6 @@ module.exports = (app) => {
     app.use(version + "/session", sessionRoute);
     app.use(version + "/datalog", datalogRoute);    
     app.use(version + "/permission", permissionRoute);
+    app.use(version + "/feedback", feedbackRoute);
+    app.use(version + "/status", statusRoute);
 };

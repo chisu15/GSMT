@@ -1,34 +1,36 @@
-// Hàm chuyển đổi DateTime2 sang Date
-function convertDateTime2ToDate(dateTime2String) {
-    if (!dateTime2String) {
-        console.error("Invalid DateTime2 string provided:", dateTime2String);
-        return null;
-    }
+const moment = require('moment-timezone');
 
-    try {
-        // Chuyển đổi chuỗi DateTime2 (ISO 8601) thành đối tượng Date của JavaScript
-        const dateObject = new Date(dateTime2String);
 
-        // Kiểm tra tính hợp lệ của đối tượng Date
-        if (isNaN(dateObject.getTime())) {
-            console.error("Invalid DateTime2 format:", dateTime2String);
-            return null;
-        }
+// module.exports.calculateMinutesAgo = (lastActiveTime) => {
+//     let now = new Date.now();
+//     console.log(now);
+    
+//     const diffMilliseconds = now.diff(lastActive);
+//     const diffMinutes = Math.abs(Math.floor(diffMilliseconds / (1000 * 60))); 
+//     if (diffMinutes < 60) {
+//         return `${diffMinutes} phút trước`;
+//     } else if (diffMinutes < 1440) {  // 1440 phút = 24 giờ
+//         const diffHours = Math.floor(diffMinutes / 60);
+//         return `${diffHours} giờ trước`;
+//     } else {
+//         const diffDays = Math.floor(diffMinutes / 1440);
+//         return `${diffDays} ngày trước`;
+//     }
+// };
 
-        // Trả về đối tượng Date hợp lệ
-        return dateObject;
-    } catch (error) {
-        console.error("Error converting DateTime2 to Date:", error);
-        return null;
-    }
-}
+module.exports.formatDate = (date) => {
+    var hours = date.getUTCHours();
+    var minutes = date.getUTCMinutes();
+    var seconds = date.getUTCSeconds();
+    var months = date.getUTCMonth() + 1;
+    var day = date.getUTCDate();
 
-// Hàm tính số phút từ lần cuối thiết bị hoạt động
-// Hàm tính số phút từ lần cuối thiết bị hoạt động
-module.exports.calculateMinutesAgo = (lastActiveTime) => {
-    const nowUTC = Date.now(); 
-    const lastActiveUTC = new Date(lastActiveTime).getTime();
-    const diffMs = nowUTC - lastActiveUTC;
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    return diffMinutes >= 0 ? diffMinutes : 0; 
+    day = day < 10 ? "0" + day : day;
+    months = months < 10 ? "0" + months : months;
+    hours = hours < 10 ? "0" + hours : hours;
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    seconds = seconds < 10 ? "0" + seconds : seconds;
+
+    var strTime = hours + ":" + minutes;
+    return strTime + " " + day + "-" + months + "-" + date.getFullYear();
 };
