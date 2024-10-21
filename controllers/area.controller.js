@@ -1,12 +1,11 @@
 const Area = require("../models/area.model");
 const crypto = require('crypto');
-
+const qrHelper = require("../helpers/qrHelper");
+const { genQRBase64 } = require("../helpers/qrHelper");
 
 function buildTree(flatData) {
     let tree = [];
     let lookup = {};
-
-    // Tạo một đối tượng để tra cứu nhanh các phần tử
     flatData.forEach(item => {
         lookup[item.id] = { ...item, children: [] };
         console.log( lookup[item.id] )
@@ -15,11 +14,9 @@ function buildTree(flatData) {
     // Xây dựng cây dựa vào parent_id
     flatData.forEach(item => {
         if (item.parent_id === 0) {
-            // Nếu không có parent, đây là node gốc
             tree.push(lookup[item.id]);
             console.log("Check parent 0")
         } else {
-            // Gán phần tử vào children của phần tử cha
             lookup[item.parent_id].children.push(lookup[item.id]);
             console.log("Check chill 1",   lookup[item.parent_id] )
         }
@@ -31,9 +28,9 @@ function buildTree(flatData) {
 // [POST] INDEX
 module.exports.index = async (req, res) => {
     try {
-        const area = await Area.find();
+        const areas = await Area.find();
         const totalArea = await Area.count();
-        if (!area.length) {
+        if (!areas.length) {
             return res
                 .json({
                     code: 204,
@@ -41,12 +38,19 @@ module.exports.index = async (req, res) => {
                 })
 
         }
-        const tree = buildTree(area)
+        const areasWithQR = await Promise.all(areas.map(async (area) => {
+            const qrCode = await genQRBase64(area.code);
+            return {
+                ...area,
+                qr_code: qrCode
+            };
+        }));
+        const tree = buildTree(areasWithQR)
         return res.status(200).json({
             code: 200,
             message: "Get data success",
             total: totalArea.total,
-            area, 
+            area: areasWithQR, 
             tree,
         });
     } catch (error) {
@@ -70,10 +74,16 @@ module.exports.detail = async (req, res) => {
                 })
 
         }
+
+        const data = {
+            ...area[0],
+            qr_code: await genQRBase64(area[0].code)
+        }
+        
         return res.status(200).json({
             code: 200,
             message: "Get data success",
-            Area: area[0],
+            Area: data,
         });
     } catch (error) {
         return res.status(500).json({
