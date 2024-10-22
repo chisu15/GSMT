@@ -1,6 +1,4 @@
 const Area = require("../models/area.model");
-const crypto = require('crypto');
-
 
 function buildTree(flatData) {
     let tree = [];
@@ -87,11 +85,10 @@ module.exports.detail = async (req, res) => {
 module.exports.create = async (req, res) => {
     try {
         const data = req.body;
-        if (!data.code) {
-            data.code = crypto.randomBytes(6).toString('hex');
-        }
-
         const existedArea = await Area.findByData("label", data.label);
+        // console.log(data);
+        
+        // console.log(existedArea);
 
         if (existedArea.length != 0) {
             return res.json({
@@ -101,8 +98,6 @@ module.exports.create = async (req, res) => {
         }
         const area = await Area.create(data);
         const createdArea = await Area.findByData("label", data.label);
-        console.log(createdArea);
-        
         if (createdArea.length == 0) {
             return res.json({
                 code: 500,
