@@ -147,6 +147,10 @@ module.exports.edit = async (req, res) => {
                 })
 
         }
+        if((existedArea[0].code == null) || !data.code)
+        {
+            data.code = crypto.randomBytes(6).toString('hex');
+        }
         const area = await Area.updateById(id, data);
         console.log(Area);
         if (area.success)
