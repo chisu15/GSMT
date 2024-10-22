@@ -21,7 +21,7 @@ module.exports.findById = async (id) => {
 	try {
 		const record = await db.pool.request().input("id", mssql.Int, id)
 			.query(`
-SELECT Area.id, Area.label, Area.parent_id, Area.level, Area.type_id, Type.title AS type FROM Area
+SELECT Area.*, Type.title AS type FROM Area
 			LEFT JOIN Type ON Area.type_id = Type.id
                 WHERE Area.id = @id
             `);
