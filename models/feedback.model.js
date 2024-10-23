@@ -4,7 +4,13 @@ const mssql = require("mssql");
 module.exports.find = async () => {
 	try {
 		const record = await db.pool.request().query(`
-			SELECT * FROM Feedback
+          SELECT Feedback.*, 
+                   Area.label AS area_label, 
+                   Status.title AS status_title
+            FROM Feedback
+            LEFT JOIN Area ON Feedback.area_id = Area.id
+            LEFT JOIN Status ON Feedback.status_id = Status.id
+            ORDER BY Feedback.created_at DESC
 		`);
 		return record.recordset;
 	} catch (error) {
@@ -20,7 +26,12 @@ module.exports.findById = async (id) => {
 	try {
 		const record = await db.pool.request().input("id", mssql.Int, id)
 			.query(`
-            SELECT *  FROM Feedback
+                      SELECT Feedback.*, 
+                   Area.label AS area_label, 
+                   Status.title AS status_title
+            FROM Feedback
+            LEFT JOIN Area ON Feedback.area_id = Area.id
+            LEFT JOIN Status ON Feedback.status_id = Status.id
                 WHERE Feedback.id = @id
             `);
 

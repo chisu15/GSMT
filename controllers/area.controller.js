@@ -73,10 +73,13 @@ module.exports.detail = async (req, res) => {
                 })
 
         }
-
+        const urlQR = process.env.URL_FE + area[0].code
+        console.log(urlQR);
+        
         const data = {
             ...area[0],
-            qr_code: await genQRBase64(area[0].code)
+            url: urlQR,
+            qr_code: await genQRBase64(urlQR)
         }
         
         return res.status(200).json({
@@ -237,6 +240,42 @@ module.exports.deviceInArea = async (req, res) => {
             code: 200,
             message: "Get Device on Area success!",
             devices
+        })
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            message: error.message,
+        });
+    }
+};
+
+module.exports.logAbnormal = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const existedArea = await Area.findById(id);
+        console.log(existedArea);
+        if (existedArea.length == 0) {
+            return res
+                .json({
+                    code: 204,
+                    message: "Not found area",
+                })
+
+        }
+        const abnormalLog = await Area.getAbnormalLog(id);
+        if (abnormalLog.length == 0) {
+            return res
+                .json({
+                    code: 204,
+                    message: "Not found abnormal log on this Area",
+                })
+
+        }
+        return res.status(200)
+        .json({
+            code: 200,
+            message: "Get abnormal log on Area success!",
+            abnormalLog
         })
     } catch (error) {
         return res.status(500).json({

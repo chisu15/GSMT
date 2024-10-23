@@ -1,13 +1,13 @@
 const db = require("../configs/database");
 const mssql = require("mssql");
-const calculate = require("../helpers/calculate")
+const calculate = require("../helpers/calculate");
 
 module.exports.find = async () => {
 	try {
 		const record = await db.pool.request().query(`
 			SELECT DataLog.*, Device.device_id AS device FROM DataLog LEFT JOIN Device ON DataLog.device_id = Device.id
 			ORDER BY create_at DESC`);
-		const dataList = record.recordset
+		const dataList = record.recordset;
 		return record.recordset;
 	} catch (error) {
 		console.error("error", error.message);
@@ -108,7 +108,10 @@ module.exports.create = async (data) => {
 
 		const deviceState = deviceRecord.recordset[0].state;
 		if (deviceState === 0) {
-			return { success: false, message: "Device is disabled, log not saved" };
+			return {
+				success: false,
+				message: "Device is disabled, log not saved",
+			};
 		}
 		const result = await db.pool
 			.request()
@@ -140,8 +143,7 @@ module.exports.updateById = async (id, data) => {
 			.input("light", mssql.Float, data.light)
 			.input("state", db.mssql.Int, 0)
 			.input("description", mssql.NVarChar, data.description)
-			.input("device_id", mssql.Int, data.device_id)
-			.query(`
+			.input("device_id", mssql.Int, data.device_id).query(`
                 UPDATE DataLog
                 SET 
                     hum = @hum,
@@ -204,6 +206,23 @@ module.exports.deleteById = async (id) => {
 			success: true,
 			message: "Record deleted successfully",
 		};
+	} catch (error) {
+		console.error("error", error.message);
+		return {
+			success: false,
+			message: error.message,
+		};
+	}
+};
+
+module.exports.getAllAbnormal = async () => {
+	try {
+		const record = await db.pool.request().query(`
+			SELECT DataLog.*, Device.device_id AS device FROM DataLog LEFT JOIN Device ON DataLog.device_id = Device.id
+			WHERE DataLog.temp > 33
+				ORDER BY DataLog.create_at DESC
+			`);
+		return record.recordset;
 	} catch (error) {
 		console.error("error", error.message);
 		return {

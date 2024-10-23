@@ -222,3 +222,38 @@ module.exports.getDevice = async (area_id) => {
 		throw new Error("Could not retrieve devices by area_id");
 	}
 };
+
+module.exports.getAbnormalLog = async (area_id) => {
+	try {
+        const result = await db.pool.request()
+            .input("area_id", mssql.Int, area_id)
+            .query(`
+                SELECT DataLog.id, DataLog.hum, DataLog.temp, DataLog.air_quality, DataLog.light, DataLog.state, DataLog.description, DataLog.create_at, Device.device_id, Device.area_id, Area.label as area_label
+                FROM DataLog
+                JOIN Device ON DataLog.device_id = Device.id
+                JOIN Area ON Device.area_id = Area.id
+                WHERE Device.area_id = @area_id AND DataLog.temp > 33
+				ORDER BY DataLog.create_at DESC
+            `);
+
+        return result.recordset.map(log => ({
+            id: log.id,
+            hum: log.hum,
+            temp: log.temp,
+            air_quality: log.air_quality,
+            light: log.light,
+            state: log.state,
+            description: log.description,
+            create_at: log.create_at,
+            // device_id: log.device_id,
+            device: log.device_id,
+            area_id: log.area_id,
+            area_label: log.area_label,
+        }));
+		// return result.recordset
+	} catch (error) {
+		console.error("SQL error", error);
+		throw new Error("Could not retrieve devices by area_id");
+	}
+};
+

@@ -64,8 +64,9 @@ module.exports.detail = async (req, res) => {
 			url: `${baseURL}${img.url}`
 		}));
 		const status = await Status.findById(feedback[0].status_id);
-		feedback[0].status = status.length ? status[0].title : null;
-
+		// feedback[0].status = status.length ? status[0].title : null;
+		console.log(feedback[0]);
+		
 		return res.status(200).json({
 			code: 200,
 			message: "Get data success",

@@ -43,6 +43,45 @@ module.exports.index = async (req, res) => {
 		});
 	}
 };
+module.exports.getAbnormal= async (req, res) => {
+	try {
+		const dataLog = await DataLog.getAllAbnormal(); 
+		const totalDataLog = await DataLog.count(); 
+		if (!dataLog.length) {
+			return res.status(204).json({
+				code: 204,
+				message: "No DataLog found",
+			});
+		}
+
+		const formatDataList = dataLog.map((data) => {
+			let formattedTime = data.create_at ? calculate.formatDate(data.create_at) : "N/A";
+			const formattedDate = formattedTime !== "N/A" ? moment(formattedTime, "HH:mm DD-MM-YYYY").format("HH:mm DD-MM-YYYY") : "N/A";
+
+			return {
+				id: data.device_id,
+				device: data.device,
+				temp: data.temp,
+				hum: data.hum,
+				light: data.light,
+				air_quality: data.air_quality,
+				create_at: formattedDate, 
+			};
+		});
+
+		return res.status(200).json({
+			code: 200,
+			message: "Get data success",
+			total: totalDataLog,
+			data: formatDataList,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			code: 500,
+			message: error.message,
+		});
+	}
+};
 // [POST] DETAIL
 module.exports.detail = async (req, res) => {
 	try {
