@@ -1,6 +1,6 @@
 const Area = require("../models/area.model");
 const crypto = require('crypto');
-
+const {genQRBase64} = require('../helpers/qrHelper');
 
 function buildTree(flatData) {
     let tree = [];
@@ -98,7 +98,9 @@ module.exports.create = async (req, res) => {
         const data = req.body;
         const existedArea = await Area.findByData("label", data.label);
         // console.log(data);
-        
+        if(!data.code){
+            data.code = "GSMT" + crypto.randomInt(10000000, 100000000).toString();
+        }
         // console.log(existedArea);
 
         if (existedArea.length != 0) {
@@ -145,7 +147,7 @@ module.exports.edit = async (req, res) => {
         }
         if((existedArea[0].code == null) || !data.code)
         {
-            data.code = crypto.randomBytes(6).toString('hex');
+            data.code = "GSMT" + crypto.randomInt(10000000, 100000000).toString();
         }
         const area = await Area.updateById(id, data);
         console.log(Area);
